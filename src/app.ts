@@ -2,9 +2,6 @@ import cookieParser from "cookie-parser";
 import express, { Application, Request, request, Response } from "express";
 import cors from "cors";
 import config from "./config";
-import { prisma } from "./lib/prisma";
-import httpStatus from "http-status";
-import bcrypt from "bcrypt";
 import { userRouter } from "./modules/users/user.route";
 import { authRouter } from "./modules/auth/auth.route";
 

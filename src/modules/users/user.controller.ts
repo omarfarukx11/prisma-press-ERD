@@ -19,8 +19,8 @@ const createUser = catchAsync( async (req : Request , res : Response , next : Ne
 })
 
 const getMyProfile = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
-  
-  const profile = await userService.getMyProfileFromDB(req.user?.id as string)
+  const userId = req.user?.id as string
+  const profile = await userService.getMyProfileFromDB(userId)
   sendResponse(res , {
     success : true,
     statusCode : httpStatus.OK,
@@ -29,4 +29,16 @@ const getMyProfile = catchAsync(async (req : Request , res : Response , next : N
   })
 })
 
-export const userController = { createUser , getMyProfile };
+const updateProfile = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
+    const userId = req.user?.id as string;
+    const payload = req.body;
+    const updateResult = userService.updateProfileIntoDB(userId , payload)
+    sendResponse(res , {
+      success : true,
+      statusCode : httpStatus.OK,
+      message :"user profile updated successfully",
+      data : {updateResult}
+    })
+})
+
+export const userController = { createUser , getMyProfile , updateProfile};
