@@ -3,6 +3,9 @@ import httpStatus from "http-status";
 import { userService } from "./user.service";
 import { catchAsync } from "../../utility/catchAsync";
 import { sendResponse } from "../../utility/sendResponse";
+import jwt from "jsonwebtoken"
+import config from "../../config";
+import { jwtUtilis } from "../../utility/jwt";
 
 const createUser = catchAsync( async (req : Request , res : Response , next : NextFunction) => {
   const payload = req.body;
@@ -14,4 +17,16 @@ const createUser = catchAsync( async (req : Request , res : Response , next : Ne
     data : {user}
   })
 })
-export const userController = { createUser };
+
+const getMyProfile = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
+  
+  const profile = await userService.getMyProfileFromDB(req.user?.id as string)
+  sendResponse(res , {
+    success : true,
+    statusCode : httpStatus.OK,
+    message : "user profile fetch succesfully",
+    data : {profile}
+  })
+})
+
+export const userController = { createUser , getMyProfile };
