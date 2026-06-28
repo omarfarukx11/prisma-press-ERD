@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma";
-import { ICreatePostPayload } from "./post.interface";
+import { ICreatePostPayload, IUpdatePayload } from "./post.interface";
 
 const createPostInDB = async (payload: ICreatePostPayload, userId: string) => {
   const result = await prisma.post.create({
@@ -46,26 +46,55 @@ const getSinglePostFromDB = async (postId: string) => {
 
 const getMyPostFromDB = async (authorId: string) => {
   const result = await prisma.post.findMany({
-    where: { authorId : authorId },
+    where: { authorId: authorId },
     orderBy: { createdAt: "desc" },
     include: {
       comments: true,
       author: {
         omit: { password: true },
       },
-      _count : {
-        select : {
-            comments : true,
-        }
-      }
-    }
+      _count: {
+        select: {
+          comments: true,
+        },
+      },
+    },
   });
   return result;
 };
 
+
+const updatePostInDB = async (
+  postId: string,
+  payload: IUpdatePayload,
+  authorId: string,
+  isAdmin: boolean,
+) => {
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+  });
+
+  if (!isAdmin && post.authorId !== authorId) {
+    throw new Error("You are not eligable to update this post");
+  }
+
+  const result = await prisma.post.update({
+    where: { id: postId },
+    data: payload,
+    include: {
+      comments: true,
+      author: {
+        omit: { password: true },
+      },
+    },
+  });
+  return result;
+};
+
+
+
 const getStatsFromDB = async () => {};
 
-const updatePostInDB = async () => {};
 const deletePostFromDB = async () => {};
 
 export const postService = {
