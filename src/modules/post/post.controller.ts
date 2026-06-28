@@ -1,14 +1,31 @@
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utility/catchAsync";
-
+import { postService } from "./post.service";
+import { sendResponse } from "../../utility/sendResponse";
+import httpStatus from "http-status";
 
 const createPost = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
-    
+    const  id = req.user?.id;
+    const payload = req.body;
+    const postResult = await postService.createPostInDB(payload, id as string)
+    sendResponse(res , {
+        success : true,
+        statusCode : httpStatus.CREATED,
+        message : "Post Created Successfully",
+        data : postResult
+    })
+
 })
 
 
 const getAllPost = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
-  
+  const result = await postService.getAllPostFromDB()
+  sendResponse(res , {
+    success : true,
+    statusCode : httpStatus.OK,
+    message : "All Post Retrive successfully",
+    data : result
+  })
 })
 
 const getStats = catchAsync(async () => {
