@@ -28,6 +28,21 @@ const getAllPost = catchAsync(async (req : Request , res : Response , next : Nex
   })
 })
 
+const getPostById = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
+    const postId = req.params.postId;
+    if(!postId) {
+        throw new Error("Post Id Required")
+    }
+    const result = await postService.getSinglePostFromDB(postId as string)
+    sendResponse(res , {
+        success : true,
+        statusCode : httpStatus.OK,
+        message : "Single Post Retrive successfully",
+        data : result
+    })
+})
+
+
 const getStats = catchAsync(async () => {
   
 })
@@ -38,9 +53,6 @@ const getMyPost = catchAsync(async (req : Request , res : Response , next : Next
 
 })
 
-const getPostById = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
-  
-})
 
 const updatePost = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
   
