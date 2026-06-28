@@ -9,7 +9,7 @@ router.post("/" , auth(Role.ADMIN,Role.AUTHOR,Role.USER) ,postController.createP
 
 router.get("/" , postController.getAllPost)
 router.get("/stats" , auth(Role.ADMIN) , postController.getStats)
-router.get("my-post" , auth(Role.ADMIN ,Role.AUTHOR, Role.USER) , postController.getMyPost)
+router.get("/my-post" , auth(Role.ADMIN ,Role.AUTHOR, Role.USER) , postController.getMyPost)
 router.get("/:postId" , auth(Role.ADMIN ,Role.AUTHOR, Role.USER) , postController.getPostById)
 router.patch("/postId" , auth(Role.ADMIN,Role.AUTHOR,Role.USER) , postController.updatePost)
 router.delete("/postId" , auth(Role.ADMIN,Role.AUTHOR,Role.USER) , postController.deletePost) 
