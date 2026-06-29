@@ -55,7 +55,6 @@ const getMyPost = catchAsync(async (req : Request , res : Response , next : Next
 })
 
 
-
 const updatePost = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
     const postId = req.params.postId;
     const authorId = req.user?.id; 
@@ -73,16 +72,26 @@ const updatePost = catchAsync(async (req : Request , res : Response , next : Nex
     
 })
 
-const getStats = catchAsync(async () => {
-  
-})
 
 
 const deletePost = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
-  
+    const postId = req.params.postId;
+    const authorId = req.user?.id;
+    const isAdmin = req.user?.role === "ADMIN";
+    const result = await postService.deletePostFromDB(postId as string , authorId as string, isAdmin)
+    sendResponse(res , {
+        success : true ,
+        statusCode : httpStatus.OK,
+        message : "Post Deleted Successfully",
+        data : {result}
+    })
+    
 })
 
 
+const getStats = catchAsync(async () => {
+  
+})
 
 
 export const postController = {

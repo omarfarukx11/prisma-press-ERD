@@ -19,6 +19,9 @@ const getAllPostFromDB = async () => {
       },
       comments: true,
     },
+    orderBy : {
+      createdAt : "desc"
+    }
   });
   return result;
 };
@@ -91,11 +94,24 @@ const updatePostInDB = async (
   return result;
 };
 
+const deletePostFromDB = async (postId : string ,authorId : string, isAdmin : boolean) => {
+  const post = await prisma.post.findFirstOrThrow({
+    where : { id : postId}
+  })
+  if(!isAdmin && post.authorId !== authorId) {
+    throw new Error("You are not eligable to Deletite this post");
+  }
 
+  const result =  await prisma.post.delete({
+    where : {id : postId}
+  })
+
+  return null;
+};
 
 const getStatsFromDB = async () => {};
 
-const deletePostFromDB = async () => {};
+
 
 export const postService = {
   createPostInDB,
