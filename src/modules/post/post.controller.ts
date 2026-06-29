@@ -58,11 +58,10 @@ const getMyPost = catchAsync(async (req : Request , res : Response , next : Next
 const updatePost = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
     const postId = req.params.postId;
     const authorId = req.user?.id; 
-    const isAdmin = req.user?.role === "ADMIN";
     const payload = req.body
 
 
-    const result = await postService.updatePostInDB(postId as string , payload , authorId as string , isAdmin)
+    const result = await postService.updatePostInDB(postId as string , payload , authorId as string )
     sendResponse(res , {
         success : true,
         statusCode : httpStatus.OK,
@@ -73,24 +72,29 @@ const updatePost = catchAsync(async (req : Request , res : Response , next : Nex
 })
 
 
-
 const deletePost = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
     const postId = req.params.postId;
     const authorId = req.user?.id;
     const isAdmin = req.user?.role === "ADMIN";
-    const result = await postService.deletePostFromDB(postId as string , authorId as string, isAdmin)
+    await postService.deletePostFromDB(postId as string , authorId as string, isAdmin)
     sendResponse(res , {
         success : true ,
         statusCode : httpStatus.OK,
         message : "Post Deleted Successfully",
-        data : {result}
+        data : null
     })
     
 })
 
 
-const getStats = catchAsync(async () => {
-  
+const getStats = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
+    const result = await postService.getStatsFromDB()
+    sendResponse(res , {
+        success : true,
+        statusCode : httpStatus.OK,
+        message : "Stats Retrive Successfully",
+        data : result
+    })
 })
 
 

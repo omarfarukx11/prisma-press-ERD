@@ -1,3 +1,4 @@
+import { CommentStatus, PostStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { ICreatePostPayload, IUpdatePayload } from "./post.interface";
 
@@ -19,32 +20,85 @@ const getAllPostFromDB = async () => {
       },
       comments: true,
     },
-    orderBy : {
-      createdAt : "desc"
-    }
+    orderBy: {
+      createdAt: "desc",
+    },
   });
   return result;
 };
 
 const getSinglePostFromDB = async (postId: string) => {
-  const updatePost = await prisma.post.update({
-    where: { id: postId },
-    data: {
-      views: {
-        increment: 1,
-      },
-    },
-    include: {
-      author: {
-        omit: {
-          password: true,
+  // await prisma.post.update({
+  //   where: { id: postId },
+  //   data: {
+  //     views: {
+  //       increment: 1,
+  //     },
+  //   },
+  // });
+
+  // const post = await prisma.post.findFirstOrThrow({
+  //   where : {id : postId},
+  //   include: {
+  //     author: {
+  //       omit: {
+  //         password: true,
+  //       },
+  //     },
+  //     comments: {
+  //       where : {
+  //         status : CommentStatus.APPROVED
+  //       },
+  //       orderBy : {
+  //         createdAt : "desc"
+  //       }
+  //     },
+  //     _count : {
+  //       select : {
+  //         comments : true
+  //       }
+  //     }
+  //   },
+  // })
+
+  // return post;
+
+  const transactionResult = await prisma.$transaction(async (tx) => {
+    await tx.post.update({
+      where: { id: postId },
+      data: {
+        views: {
+          increment: 1,
         },
       },
-      comments: true,
-    },
-  });
+    });
 
-  return updatePost;
+    const post = await tx.post.findFirstOrThrow({
+      where: { id: postId },
+      include: {
+        author: {
+          omit: {
+            password: true,
+          },
+        },
+        comments: {
+          where: {
+            status: CommentStatus.APPROVED,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+          },
+        },
+      },
+    });
+    return post;
+  });
+  return transactionResult;
 };
 
 const getMyPostFromDB = async (authorId: string) => {
@@ -66,18 +120,16 @@ const getMyPostFromDB = async (authorId: string) => {
   return result;
 };
 
-
 const updatePostInDB = async (
   postId: string,
   payload: IUpdatePayload,
   authorId: string,
-  isAdmin: boolean,
 ) => {
   const post = await prisma.post.findUniqueOrThrow({
     where: { id: postId },
   });
 
-  if (!isAdmin && post.authorId !== authorId) {
+  if (post.authorId !== authorId) {
     throw new Error("You are not eligable to update this post");
   }
 
@@ -94,24 +146,74 @@ const updatePostInDB = async (
   return result;
 };
 
-const deletePostFromDB = async (postId : string ,authorId : string, isAdmin : boolean) => {
+const deletePostFromDB = async (
+  postId: string,
+  authorId: string,
+  isAdmin: boolean,
+) => {
   const post = await prisma.post.findFirstOrThrow({
-    where : { id : postId}
-  })
-  if(!isAdmin && post.authorId !== authorId) {
+    where: { id: postId },
+  });
+  if (!isAdmin && post.authorId !== authorId) {
     throw new Error("You are not eligable to Deletite this post");
   }
 
-  const result =  await prisma.post.delete({
-    where : {id : postId}
-  })
-
+  await prisma.post.delete({
+    where: { id: postId },
+  });
   return null;
 };
 
-const getStatsFromDB = async () => {};
+const getStatsFromDB = async () => {
+  const transactionResult = await prisma.$transaction(async (tx) => {
+    const [
+      totalPost,
+      totalPublishedPost,
+      totalDraftPost,
+      totalArchivedPost,
+      totalComments,
+      totalApprovedComment,
+      totalRenectedComment,
+      totalPostViewsAggregation,
+    ] = await Promise.all([
+      await tx.post.count(),
+      await tx.post.count({
+        where: { status: PostStatus.PUBLISHED },
+      }),
+      await tx.post.count({
+        where: { status: PostStatus.DARFT },
+      }),
+      await tx.post.count({
+        where: { status: PostStatus.ARCHIVED },
+      }),
+      await tx.comment.count(),
+      await tx.comment.count({
+        where: { status: CommentStatus.APPROVED },
+      }),
+      await tx.comment.count({
+        where: { status: CommentStatus.REJECT },
+      }),
+      await tx.post.aggregate({
+        _sum: {
+          views: true,
+        },
+      }),
+    ]);
 
+    return {
+      totalPost,
+      totalPublishedPost,
+      totalDraftPost,
+      totalArchivedPost,
+      totalComments,
+      totalApprovedComment,
+      totalRenectedComment,
+      totalPostView : totalPostViewsAggregation._sum.views
+    }
+  });
 
+  return transactionResult;
+};
 
 export const postService = {
   createPostInDB,
