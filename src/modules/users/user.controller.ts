@@ -3,9 +3,7 @@ import httpStatus from "http-status";
 import { userService } from "./user.service";
 import { catchAsync } from "../../utility/catchAsync";
 import { sendResponse } from "../../utility/sendResponse";
-import jwt from "jsonwebtoken"
-import config from "../../config";
-import { jwtUtilis } from "../../utility/jwt";
+
 
 const createUser = catchAsync( async (req : Request , res : Response , next : NextFunction) => {
   const payload = req.body;

@@ -14,5 +14,7 @@ export default {
     jwt_refresh_secret : process.env.JWT_REFRES_SCERET!,
     jwt_access_expires_in : process.env.JWT_ACCESS_EXPIERS_IN!,
     jwt_refresh_expires_in : process.env.JWT_REFRES_EXPIERS_IN!,
-
+    stripe_product_price_Id : process.env.STRIPE_PRODUCT_PRICE_ID!,
+    stripe_secret_key : process.env.STRIPE_SECRET_KEY!,
+    stripe_webhook_secret : process.env.STRIPE_WEBHOOK_SECTRET!
 }

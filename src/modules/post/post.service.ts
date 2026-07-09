@@ -1,6 +1,8 @@
+import { json } from "node:stream/consumers";
 import { CommentStatus, PostStatus } from "../../../generated/prisma/enums";
+import { PostWhereInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
-import { ICreatePostPayload, IUpdatePayload } from "./post.interface";
+import { ICreatePostPayload, IQuery, IUpdatePayload } from "./post.interface";
 
 const createPostInDB = async (payload: ICreatePostPayload, userId: string) => {
   const result = await prisma.post.create({
@@ -12,8 +14,77 @@ const createPostInDB = async (payload: ICreatePostPayload, userId: string) => {
   return result;
 };
 
-const getAllPostFromDB = async () => {
+const getAllPostFromDB = async (query: IQuery) => {
+  const limit = query.limit ? Number(query.limit) : 10;
+  const page = query.page ? Number(query.page) : 1;
+  const skip = (page - 1) * limit;
+  const sortBy = query.sortBy;
+  const andCondtion: PostWhereInput[] = [];
+  const tags = query.tags ? JSON.parse(query.tags as string) : null;
+  const tagsArray = Array.isArray(tags) ? tags : [];
+
+  if (query.searchTerm) {
+    andCondtion.push({
+      OR: [
+        {
+          title: {
+            contains: query.searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          content: {
+            contains: query.searchTerm,
+            mode: "insensitive",
+          },
+        },
+      ],
+    });
+  }
+  if (query.title) {
+    andCondtion.push({
+      title: query.title,
+    });
+  }
+
+  if (query.content) {
+    andCondtion.push({
+      content: query.content,
+    });
+  }
+
+  if (query.authorId) {
+    andCondtion.push({
+      authorId: query.authorId,
+    });
+  }
+  if (query.isFeatured) {
+    andCondtion.push({
+      isFeatured: Boolean(query.isFeatured),
+    });
+  }
+
+  if (query.tags) {
+    andCondtion.push({
+      tags: {
+        hasSome: tagsArray,
+      },
+    });
+  }
+
+  if (query.status) {
+    andCondtion.push({
+      status: query.status,
+    });
+  }
+
   const result = await prisma.post.findMany({
+    where: {
+      AND: andCondtion,
+    },
+    take: limit,
+    skip: skip,
+
     include: {
       author: {
         omit: { password: true },
@@ -28,41 +99,6 @@ const getAllPostFromDB = async () => {
 };
 
 const getSinglePostFromDB = async (postId: string) => {
-  // await prisma.post.update({
-  //   where: { id: postId },
-  //   data: {
-  //     views: {
-  //       increment: 1,
-  //     },
-  //   },
-  // });
-
-  // const post = await prisma.post.findFirstOrThrow({
-  //   where : {id : postId},
-  //   include: {
-  //     author: {
-  //       omit: {
-  //         password: true,
-  //       },
-  //     },
-  //     comments: {
-  //       where : {
-  //         status : CommentStatus.APPROVED
-  //       },
-  //       orderBy : {
-  //         createdAt : "desc"
-  //       }
-  //     },
-  //     _count : {
-  //       select : {
-  //         comments : true
-  //       }
-  //     }
-  //   },
-  // })
-
-  // return post;
-
   const transactionResult = await prisma.$transaction(async (tx) => {
     await tx.post.update({
       where: { id: postId },
@@ -208,8 +244,8 @@ const getStatsFromDB = async () => {
       totalComments,
       totalApprovedComment,
       totalRenectedComment,
-      totalPostView : totalPostViewsAggregation._sum.views
-    }
+      totalPostView: totalPostViewsAggregation._sum.views,
+    };
   });
 
   return transactionResult;
