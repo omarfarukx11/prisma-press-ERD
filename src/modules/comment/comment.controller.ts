@@ -8,7 +8,7 @@ const createComment = catchAsync(async (req : Request , res : Response , next : 
 const getAllComments = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
   
 })
-const getSingleComment = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
+const getCommentByPostId = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
   
 })
 const updateComment = catchAsync(async (req : Request , res : Response , next : NextFunction) => {
@@ -24,7 +24,7 @@ const deleteComment = catchAsync(async (req : Request , res : Response , next : 
 export const commentController = {
     createComment,
     getAllComments,
-    getSingleComment,
+    getCommentByPostId,
     updateComment,
     updateCommentByAdmin,
     deleteComment

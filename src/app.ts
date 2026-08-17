@@ -9,6 +9,7 @@ import { commentRouter } from "./modules/comment/comment.route";
 import { notFound } from "./middlewares/notFound";
 import { globalError } from "./middlewares/globalError";
 import { subscriptionRoute } from "./modules/subscription/subscriptoin.route";
+import { premiumRouter } from "./modules/premium/premium.route";
 
 
 const app: Application = express();
@@ -30,6 +31,7 @@ app.use("/api/auth", authRouter)
 app.use("/api/posts" , postRouter)
 app.use("/api/comments", commentRouter)
 app.use("/api/subscription" , subscriptionRoute)
+app.use("/api/premium" , premiumRouter)
 
 app.use(notFound)
 

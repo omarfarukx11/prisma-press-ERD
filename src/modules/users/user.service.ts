@@ -55,7 +55,6 @@ const createUserInfoDB = async (payload : createUserPayload) => {
   return user;
 }
 
-
 const getMyProfileFromDB = async (userId : string) => {
   const user = await prisma.user.findUniqueOrThrow({
     where : {id : userId},

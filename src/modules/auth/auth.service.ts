@@ -26,7 +26,7 @@ const loginUserIntoDB =  async(payload : ILoginUser) => {
   const accessToken = jwtUtilis.createToken( jwtPayload, config.jwt_access_secret , config.jwt_access_expires_in as SignOptions)
   const refreshToken = jwtUtilis.createToken(jwtPayload , config.jwt_refresh_secret , config.jwt_refresh_expires_in as SignOptions)
 
-  return {accessToken , refreshToken , };
+  return {accessToken , refreshToken  };
 
 }
 

@@ -7,5 +7,6 @@ const route = Router()
 
 route.post("/checkout" ,auth(Role.USER , Role.AUTHOR , Role.ADMIN), subscriptionController.createCheckoutSession)
 route.post("/webhook" , subscriptionController.handleCheckout)
+route.get("/status" ,auth(Role.USER , Role.AUTHOR , Role.ADMIN), subscriptionController.getSubscriptionStatus)
 
 export const subscriptionRoute = route

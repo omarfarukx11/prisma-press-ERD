@@ -17,6 +17,7 @@ const createCheckoutSession = catchAsync(async (req : Request , res : Response ,
 
 
 const handleCheckout = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Webhook hit, body type:", typeof req.body, Buffer.isBuffer(req.body));
   const event = req.body; 
   const signature = req.headers['stripe-signature'];
 
@@ -39,7 +40,20 @@ const handleCheckout = catchAsync(async (req: Request, res: Response, next: Next
   }
 });
 
+const getSubscriptionStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id
+    const result = await subscriptionServices.getSubscriptionStatus(userId as string)
+    sendResponse(res , {
+      success : true,
+      statusCode : HttpStatus.OK,
+      message : "subscription status retrive successfully" ,
+      data : result
+    })
+})
+
+
 export const subscriptionController = {
     createCheckoutSession,
-    handleCheckout
+    handleCheckout,
+    getSubscriptionStatus,
 }

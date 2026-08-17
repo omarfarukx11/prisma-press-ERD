@@ -5,6 +5,20 @@ import { prisma } from "../../lib/prisma";
 import { ICreatePostPayload, IQuery, IUpdatePayload } from "./post.interface";
 
 const createPostInDB = async (payload: ICreatePostPayload, userId: string) => {
+  const user = await prisma.user.findUniqueOrThrow({
+    where : {
+      id : userId,
+    },
+    include : {
+      subscription : true,
+    }
+
+  })
+
+  if(payload.isPremium && user.subscription?.status !== "ACTIVE") {
+    throw new Error("You are not a premium user. so you cannot post premium content")
+  }
+
   const result = await prisma.post.create({
     data: {
       ...payload,
@@ -78,6 +92,10 @@ const getAllPostFromDB = async (query: IQuery) => {
     });
   }
 
+  andCondtion.push({
+    isPremium : false
+  })
+
   const result = await prisma.post.findMany({
     where: {
       AND: andCondtion,
@@ -95,13 +113,28 @@ const getAllPostFromDB = async (query: IQuery) => {
       createdAt: "desc",
     },
   });
-  return result;
+
+  const totalPostCount = await prisma.post.count({
+    where : {
+      AND : andCondtion
+    }
+  })
+
+  return {
+    data : result,
+    meta : {
+      page : page,
+      limit : limit,
+      total : totalPostCount,
+      totalPage : Math.ceil(totalPostCount / limit)
+    }
+  };
 };
 
 const getSinglePostFromDB = async (postId: string) => {
   const transactionResult = await prisma.$transaction(async (tx) => {
     await tx.post.update({
-      where: { id: postId },
+      where: { id: postId , },
       data: {
         views: {
           increment: 1,
@@ -110,7 +143,7 @@ const getSinglePostFromDB = async (postId: string) => {
     });
 
     const post = await tx.post.findFirstOrThrow({
-      where: { id: postId },
+      where: { id: postId , isPremium : false},
       include: {
         author: {
           omit: {
